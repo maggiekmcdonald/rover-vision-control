@@ -1,0 +1,15 @@
+# Core dependencies for the vision/control stack. All of these run on any
+# desktop OS -- no Raspberry Pi or camera hardware required for --mode sim
+# or for the test suite / simulation demo.
+opencv-python>=4.9
+numpy>=1.26
+matplotlib>=3.8
+pytest>=8.0
+pillow>=10.0
+
+# Hardware-only dependencies (Raspberry Pi 5 + SunFounder PiCar-X) are kept
+# out of this file on purpose -- picar-x depends on GPIO/I2C access and will
+# not install on a regular laptop. See requirements-hardware.txt and install
+# it only when running --mode hardware on the actual robot.
+# picar-x
+# robot-hat

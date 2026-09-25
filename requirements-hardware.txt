@@ -1,0 +1,9 @@
+# Install this file ONLY on the Raspberry Pi 5 running Raspberry Pi OS with
+# the SunFounder PiCar-X kit assembled, after `pip install -r requirements.txt`.
+# These packages talk to GPIO/I2C hardware and will not install on macOS,
+# Windows, or a generic Linux desktop.
+#
+#   pip install -r requirements-hardware.txt
+#
+picar-x
+robot-hat
