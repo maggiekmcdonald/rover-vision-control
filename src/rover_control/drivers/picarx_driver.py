@@ -12,6 +12,10 @@ module -- and the rest of the rover_control package -- stays importable
 everywhere. Attempting to actually construct a PiCarXDriver on a machine
 without the library (or without the hardware) raises a clear RuntimeError
 instead of a bare ImportError deep in some unrelated stack trace.
+
+Written against the documented picar-x API (Picarx(), set_dir_servo_angle(),
+forward(), backward(), stop()) but not yet exercised against the physical
+rover -- development so far has been validated in simulation only.
 """
 
 from .base import MotorDriver, DriverStatus
@@ -48,7 +52,10 @@ class PiCarXDriver(MotorDriver):
         self._speed_percent = 0.0
 
     def set_steering(self, angle_deg: float) -> None:
-        clamped = max(-40.0, min(40.0, angle_deg))
+        # picar-x's own set_dir_servo_angle() clamps to [-30, 30] internally
+        # (DIR_MIN/DIR_MAX in the vendor library); clamp here too so
+        # get_status() reports the angle actually applied.
+        clamped = max(-30.0, min(30.0, angle_deg))
         self._steering_deg = clamped
         self._px.set_dir_servo_angle(clamped + self.steering_trim_deg)
 

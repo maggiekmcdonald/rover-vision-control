@@ -3,16 +3,21 @@
 A closed-loop, vision-guided object-following control stack, built as the
 software companion to a physical **Raspberry Pi 5 + SunFounder PiCar-X**
 rover build. This repository holds the camera-based tracking, PID control,
-and motor-driver logic that runs the physical rover -- structured so the
-exact same code runs in full simulation on a laptop with no camera or robot
-attached, and unmodified on the real hardware.
+and motor-driver logic, structured so the exact same code runs in full
+simulation on a laptop with no camera or robot attached, and is designed to
+run unmodified on the real hardware.
 
 A color-thresholding vision tracker locates a target in each frame and
 estimates its position and apparent distance. Two independent PID control
 loops turn that into steering and speed commands. Those commands go through
 a `MotorDriver` interface that is backed by either a kinematic rover
-simulator or the real PiCar-X hardware, depending on which machine the code
-is running on.
+simulator or, on the physical build, the real PiCar-X hardware.
+
+> **Hardware status:** everything in this repository has been built and
+> validated in simulation (`SimulatedDriver`, synthetic camera frames, the
+> full automated test suite). `PiCarXDriver` is written against the
+> documented `picar-x` API, but it has not yet been run against the
+> physical rover -- see [Limitations](#limitations-and-future-work).
 
 ## Architecture
 
@@ -47,11 +52,15 @@ interface (`drivers/base.py`) with `set_steering`, `set_speed`, `stop`, and
    with a controllable colored target, so the entire perception-to-actuation
    loop can be exercised, unit tested, and demoed with zero hardware
    attached.
-2. **Deploying to the real rover changes one line, not the algorithm.**
-   `PiCarXDriver` implements the identical interface against the real
-   SunFounder `picarx` library. Swapping `--mode sim` for `--mode hardware`
-   in `main.py` is the only difference between a simulation run and driving
-   the physical robot -- the tracker and navigator code is untouched.
+2. **Deploying to the real rover is designed to change one line, not the
+   algorithm.** `PiCarXDriver` implements the identical interface against
+   the real SunFounder `picarx` library, written to match its documented
+   method signatures (`Picarx()`, `set_dir_servo_angle()`, `forward()`,
+   `backward()`, `stop()`). Swapping `--mode sim` for `--mode hardware` in
+   `main.py` is intended to be the only difference between a simulation run
+   and driving the physical robot, with the tracker and navigator code
+   untouched -- but this path has not yet been exercised on the physical
+   PiCar-X (see the hardware status note above).
 
 `drivers/picarx_driver.py` imports the `picarx` package inside a
 `try/except ImportError` specifically so this module -- and the package as a
@@ -145,14 +154,15 @@ target). See `results/results.md` for the full run description and numbers.
 ## How this maps to the physical build
 
 This repository is the software layer for a personal robotics project: an
-autonomous object-following rover built on a **Raspberry Pi 5** and a
-**SunFounder PiCar-X** kit. On the physical build, the Pi's camera feeds
-`ColorObjectTracker` in place of `SyntheticFrameSource`/`WebcamFrameSource`,
-and `PiCarXDriver` drives the PiCar-X's steering servo and rear-wheel motors
-through the vendor `picarx` library in place of `SimulatedDriver`'s
-kinematic model. Every other part of the loop -- HSV tuning, the two PID
-controllers, the navigator's error-to-command mapping -- is exactly the code
-in this repository, unmodified.
+autonomous object-following rover being built on a **Raspberry Pi 5** and a
+**SunFounder PiCar-X** kit. On the physical build, the Pi's camera is meant
+to feed `ColorObjectTracker` in place of `SyntheticFrameSource`/
+`WebcamFrameSource`, and `PiCarXDriver` is meant to drive the PiCar-X's
+steering servo and rear-wheel motors through the vendor `picarx` library in
+place of `SimulatedDriver`'s kinematic model, with every other part of the
+loop -- HSV tuning, the two PID controllers, the navigator's error-to-command
+mapping -- unchanged. That integration has not been run on the physical
+rover yet; everything to date has been built and validated in simulation.
 
 ## Limitations and future work
 
